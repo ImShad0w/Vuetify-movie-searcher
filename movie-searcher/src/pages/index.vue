@@ -1,9 +1,11 @@
 <script lang="ts" setup>
-import MainPage from '@/components/MainPage.vue';
+import TopBar from '@/components/TopBar.vue';
 import Searchbar from '@/components/Searchbar.vue';
+import MovieGrid from '@/components/MovieGrid.vue';
 </script>
 
 <template>
-  <MainPage />
+  <TopBar />
   <Searchbar />
+  <MovieGrid />
 </template>
