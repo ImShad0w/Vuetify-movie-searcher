@@ -9,6 +9,7 @@
 <script setup>
 import { ref } from 'vue'
 import MovieList from '@/components/MovieList.vue';
+import MoviePage from '@/components/MoviePage.vue';
 import Searchbar from '@/components/Searchbar.vue';
 import { useApi } from "@/composables/communicationManager"
 
