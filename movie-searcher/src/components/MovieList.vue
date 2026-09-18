@@ -1,9 +1,24 @@
 <template>
   <v-container>
     <v-row>
-      <v-col v-if="!movies.length" cols="12">
-        <v-alert type="info">No movies found — try another search.</v-alert>
-      </v-col>
+      <template v-if="!hasSearched">
+        <v-col cols="12">
+          <v-alert type="info">Type a movie name!</v-alert>
+        </v-col>
+      </template>
+
+      <template v-else-if="loading">
+        <v-col cols="12" class="text-center py-16">
+          <v-progress-circular indeterminate color="primary" size="48"></v-progress-circular>
+        </v-col>
+      </template>
+
+      <template v-else-if="!movies.length">
+        <v-col cols="12">
+          <v-alert type="warning">No movies found — try another search.</v-alert>
+        </v-col>
+      </template>
+
       <v-col v-for="movie in movies" :key="movie.imdbID" cols="12" sm="6" md="6" lg="4">
         <v-card class=" w-auto" :title="movie.Title" :subtitle="movie.Type">
           <v-img :src="movie.Poster" height="200"></v-img>
@@ -18,7 +33,11 @@
   </v-container>
 </template>
 <script setup>
-defineProps({ movies: Array })
+defineProps({
+  movies: Array,
+  loading: Boolean,
+  hasSearched: Boolean,
+})
 const emit = defineEmits(["movieId"])
 
 function getId(id) {

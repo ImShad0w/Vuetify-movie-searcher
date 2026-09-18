@@ -1,8 +1,8 @@
 <template>
   <v-container>
-    <Searchbar @movieData="handleMovieData" />
-    <MoviePage v-if="movieId != null" :movieInfo="movieInfo" @resetId="resetId" />
-    <MovieList v-else :movies="movies" @movieId="handleMovieId" />
+    <Searchbar @searching="handleSearching" @movieData="handleMovieData" />
+    <MovieList :movies="movies" :loading="loading" :has-searched="hasSearched" @movieId="handleMovieId" />
+    <MoviePage :movieOpen="movieOpen" :movieInfo="movieInfo" @movieClose="handleMovieClose" />
   </v-container>
 </template>
 
@@ -14,19 +14,27 @@ import Searchbar from '@/components/Searchbar.vue';
 import { useApi } from "@/composables/communicationManager"
 
 const movies = ref([])
-const movieId = ref(null)
+const movieOpen = ref(false)
+const loading = ref(false)
+const hasSearched = ref(false)
 const { movieInfo, getMovieInfo } = useApi()
+
+function handleSearching() {
+  loading.value = true
+  hasSearched.value = true
+}
 
 function handleMovieData(data) {
   movies.value = data
+  loading.value = false
 }
 
 function handleMovieId(id) {
-  movieId.value = id
-  getMovieInfo(movieId.value)
+  movieOpen.value = true
+  getMovieInfo(id)
 }
 
-function resetId() {
-  movieId.value = null
+function handleMovieClose() {
+  movieOpen.value = false
 }
 </script>

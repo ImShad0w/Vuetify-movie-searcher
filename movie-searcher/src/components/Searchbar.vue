@@ -8,12 +8,23 @@ import { useApi } from "@/composables/communicationManager"
 
 const { movies, getMovies } = useApi()
 const movieSearch = ref("")
+const isSearching = ref(false)
 
-const emit = defineEmits(["movieData"])
+const emit = defineEmits(["movieData", "searching"])
 
 async function search() {
-  await getMovies(movieSearch.value)
+  const query = movieSearch.value.trim()
+  // Don't search when the input is empty or a request is already in flight
+  if (!query || isSearching.value) return
+
+  emit("searching")
+  isSearching.value = true
+
+  await getMovies(query)
   emit("movieData", movies.value)
+
+  isSearching.value = false
+  movieSearch.value = ""
 }
 
 </script>
