@@ -37,6 +37,7 @@ export function useApi() {
         params: {
           apikey: API_KEY,
           i: String(movieId),
+          plot: "full"
         },
       })
       if (response.data.Response === "True") {
