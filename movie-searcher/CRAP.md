@@ -1,107 +1,160 @@
-# CRAP Design Pass — Movie Searcher
+# CRAP — Cercador de Pel·lícules
 
-This document records the UI changes made to the app and links each one to a CRAP
-principle.
+Documentació de la pràctica de disseny sobre l'aplicació **Cercador de Pel·lícules**:
+captures de l'estat inicial, anàlisi crítica basada en els principis C.R.A.P. i la
+refactorització aplicada per resoldre els problemes detectats.
 
-**CRAP** is a set of four visual-design principles introduced by Robin Williams in
-*The Non-Designer's Design Book*:
+**Què és C.R.A.P.?** Són quatre principis de disseny visual de Robin Williams
+(*The Non-Designer's Design Book*):
 
-| Principle     | Idea                                                                                                   |
-| ------------- | ------------------------------------------------------------------------------------------------------ |
-| **C**ontrast  | If two things are not the same, make them *very* different. Important things should clearly dominate. |
-| **R**epetition| Repeat visual elements (color, shape, spacing, type, treatment) to create unity and consistency.       |
-| **A**lignment | Nothing sits arbitrarily — every element lines up with something else on a shared axis.                |
-| **P**roximity | Related items are grouped close together; unrelated items are pushed apart.                            |
-
-The original screen was functional but flat: no page identity, everything at the
-same visual weight, a nested/duplicated container, and a stray line of text inside
-the detail dialog. The pass below fixes those in terms of CRAP.
+| Principi          | Idea                                                                                                    |
+| ----------------- | ------------------------------------------------------------------------------------------------------- |
+| **C**ontrast      | Si dues coses no són iguals, fes-les *molt* diferents. El que és important ha de dominar visualment.     |
+| **R**epetició     | Repeteix elements visuals (color, forma, espaiat, tipografia) per crear unitat i coherència.             |
+| **A**lineació     | Res no es col·loca a l'atzar: cada element s'alinea amb un altre sobre un eix compartit.                 |
+| **P**roximitat    | Els elements relacionats s'agrupen; els que no hi tenen res a veure se separen.                          |
 
 ---
 
-## What changed, and why
+## 1. Captures de l'estat inicial
 
-### 1. Contrast
+> **Com afegir les captures:** crea una carpeta `screenshots/` a l'arrel del projecte,
+> desa-hi les imatges amb els noms indicats i les rutes de sota es mostraran soles
+> (si fas servir altres noms, només cal canviar les rutes).
 
-| Change                                                                                      | Why                                                                                                                                          | Principle |
-| ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| Added a page **header** with an icon, a `text-4xl` title and a muted subtitle               | The screen had no focal point. A large, bold title immediately gives the page a clear entry point and hierarchy.                              | Contrast  |
-| Split the title color: "Movie" in `slate-900`, "Searcher" in the theme **primary** color     | Creates emphasis within the headline and ties the brand color to the primary action color used throughout the app.                            | Contrast  |
-| Changed card/dialog CTAs from grey **outlined** `border` buttons to solid **filled** `primary` buttons ("View details", "Search", "Close") | All buttons previously looked identical and low-emphasis. Important actions are now visually dominant while secondary actions stay quiet.    | Contrast  |
-| Made card titles bold/dark (`text-base font-semibold text-slate-900`) and metadata small/muted/uppercase | Title and metadata were nearly the same weight. Now the hierarchy (title → metadata → action) is obvious at a glance.                          | Contrast  |
-| Used **tonal** alerts and `primary`/neutral **chips** for metadata                         | Gives status and metadata a distinct, readable treatment instead of plain body text.                                                            | Contrast  |
-| Set the page background to `bg-slate-100` (was pure white)                                    | White cards/surfaces now read as raised objects against the muted background, adding depth and separation.                                     | Contrast  |
+Captura de la pantalla de cerca (estat inicial):
 
-### 2. Repetition
+![Estat inicial — pantalla de cerca](screenshots/inicial-1.png)
 
-| Change                                                                                             | Why                                                                                                                                    | Principle  |
-| -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| Every movie card uses the exact same anatomy: poster → title → metadata → full-width primary CTA    | Repeating the structure makes the grid scannable and predictable; users learn one card and understand them all.                        | Repetition |
-| Repeated the same `rounded-xl` corner radius, `border` + soft `shadow` surface and spacing scale across cards, search panel and dialog | A shared "surface language" unifies otherwise separate components.                                                                     | Repetition |
-| Reused the same **chip** treatment for metadata in the detail dialog                                | Metadata is presented consistently everywhere instead of being ad-hoc text.                                                            | Repetition |
-| Centralized the poster fallback (`src/utils/poster.ts` + `src/assets/poster-placeholder.svg`)       | Cards and the dialog render the *identical* placeholder image, so no view shows a broken/blank poster.                                 | Repetition |
-| Consistent loading treatment (same `v-progress-circular` size/width/color)                          | The list and the dialog now signal "loading" the same way.                                                                             | Repetition |
+Captura del diàleg de detall d'una pel·lícula (estat inicial):
 
-### 3. Alignment
-
-| Change                                                                                          | Why                                                                                                                                        | Principle |
-| ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | --------- |
-| Removed the **nested `v-container`** in `MovieList.vue` (it was wrapped in the page's container) | Double containers meant double padding and content that didn't line up with the header/search above it. Everything shares one content grid now. | Alignment |
-| Constrained the page to a single centered column (`mx-auto max-w-6xl`)                           | Creates one shared vertical axis that the header, search panel, results heading and grid all respect.                                       | Alignment |
-| Anchor card text to a single left edge and pin each CTA to the card's bottom edge                | Titles, metadata and buttons now line up across cards regardless of how many lines the title wraps to.                                     | Alignment |
-| Added a "Results (n)" heading aligned with the grid                                              | Connects the result count to the cards beneath it instead of floating unexplained.                                                          | Alignment |
-| Centered the page header and the loading/empty states                                          | Text blocks that belong to the whole page are centered on the same axis as the content column.                                             | Alignment |
-
-### 4. Proximity
-
-| Change                                                                                              | Why                                                                                                                                          | Principle |
-| --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| Grouped the search field and its "Search" button inside one elevated white **panel** (`v-sheet`)     | Search inputs and their action belong together; the panel visually binds them and separates them from the results below.                     | Proximity |
-| Wrapped the header title + subtitle + icon tightly, with larger space before the search panel        | Title and description are one unit; the gap between that unit and the next section expresses "different group".                             | Proximity |
-| Tightened internal card spacing (poster→title→meta) and used generous gutters *between* cards        | Items inside a card are related and sit close; cards themselves are distinct units and get breathing room.                                   | Proximity |
-| Grouped the dialog's title and metadata chips, then gave the plot text its own space above the divider | Title/meta form a block; synopsis is a separate block; the divider and full-width action close the dialog cleanly.                          | Proximity |
+![Estat inicial — detall de la pel·lícula](screenshots/inicial-2.png)
 
 ---
 
-## Incidental fixes included
+## 2. Anàlisi crítica (principis C.R.A.P.)
 
-These are not strictly CRAP, but they were required to make the design review
-meaningful:
+L'estat inicial de l'aplicació és funcional, però visualment és pla i no guia la
+mirada de l'usuari. Pel que fa al **contrast**, no hi ha cap títol ni element que
+actuï com a punt focal, de manera que el camp de cerca apareix «orfe» a dalt de tot
+d'una pàgina blanca. Tots els botons comparteixen el mateix tractament (contorn gris
+amb `border`), tant l'acció principal («More») com la secundària («Go back»), i els
+títols de les targetes gairebé no es distingeixen dels subtítols; a més, les targetes
+blanques sobre fons blanc no generen cap sensació de profunditat. Quant a la
+**repetició**, no hi ha un llenguatge visual consistent: targetes, diàleg i botons es
+construeixen sense un patró comú, hi ha detalls descuidats (per exemple
+`class=" w-auto"` amb un espai sobrant) i, quan l'API retorna `"N/A"`, les imatges
+surten trencades.
 
-- **Restored `vite.config.mts`.** The project had no Vite config at all, so the Vue
-  plugin never registered and the app could not build or run (`[PARSE_ERROR]` on
-  every `.vue` file). The config wires up `@vitejs/plugin-vue`, `vite-plugin-vuetify`,
-  `@tailwindcss/vite`, `unplugin-fonts` and the `@` → `src` alias.
-- **Removed a stray line of text in `MoviePage.vue`.** The original template
-  rendered `trar la informació detallada dins d'un v-dialog.` inside the dialog
-  body — leftover placeholder text that broke the dialog's alignment and readability
-  (noise also works against contrast).
-- **Updated the document title** in `index.html` from *"Welcome to Vuetify 4"* to
-  *"Movie Searcher"*.
-- **Dialog now closes on Esc / backdrop click.** `@update:model-value` emits
-  `movieClose` so the parent's `movieOpen` state stays in sync with the UI.
-
----
-
-## Files touched
-
-- `src/App.vue` — muted page background
-- `src/pages/index.vue` — page header, content column
-- `src/components/Searchbar.vue` — grouped search panel + primary button
-- `src/components/MovieList.vue` — results heading, equal-height cards, states
-- `src/components/MoviePage.vue` — dialog layout, chips, actions, cleanup
-- `src/utils/poster.ts`, `src/assets/poster-placeholder.svg` — shared poster fallback
-- `vite.config.mts` — restored build configuration
-- `index.html` — document title
+D'altra banda, l'**alineació** és deficient: a `MovieList.vue` hi ha un `v-container`
+imbricat dins del `v-container` de la pàgina, cosa que duplica el *padding* i fa que
+la graella de resultats no coincideixi amb l'eix de la resta de contingut; a més, els
+botons de les targetes no queden alineats entre si quan el títol ocupa una o dues
+línies, i al diàleg de detall hi ha un text perdut
+(«trar la informació detallada dins d'un v-dialog.») que trenca la composició.
+Finalment, la **proximitat** tampoc agrupa bé els elements: el camp de cerca no
+s'associa visualment amb cap bloc ni amb els resultats, no s'indica quants resultats
+s'han trobat, i dins del diàleg el títol, les dades (any, gènere, durada) i la
+sinopsi queden barrejats sense jerarquia.
 
 ---
 
-## Before → After at a glance
+## 3. Refactorització
 
-| Area          | Before                                                        | After                                                                   |
-| ------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Page identity | None — search bar dropped at the top of a blank page          | Centered title + icon + description, primary accent on the headline     |
-| Search        | Bare text field                                               | Text field + Search button grouped in an elevated surface               |
-| Results       | Cards with equal-weight title/subtitle, grey "More" outline button | Scannable grid, bold titles, muted metadata, primary "View details" CTA |
-| Empty/loading | Generic alerts and a lone spinner                             | Consistent states with labels and repeated spinner styling              |
-| Detail dialog | Stray text, plain layout, grey "Go back"                      | Poster + chip metadata + divider + full-width primary "Close"           |
+A continuació es resumeix cada problema detectat, la solució aplicada i el principi
+C.R.A.P. que la justifica.
+
+### 3.1 Contrast
+
+| Problema a l'estat inicial                                                        | Solució aplicada                                                                                  |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| No hi ha punt focal ni jerarquia: tot pesa igual                                | Capçalera de pàgina amb icona, títol gran (`text-4xl`) i descripció en text atenuat              |
+| Títol gris sobre fons blanc, poc èmfasi                                           | Títol dividit: «Cercador de» en `slate-900` i «Pel·lícules» en el color **primary** del tema        |
+| Tots els botons són iguals (contorn gris), l'acció principal no destaca           | Accions principals amb botó **omplert** (`variant="flat"`, `color="primary"`); la resta, discretes |
+| Títol i subtítol de la targeta gairebé idèntics                                   | Títol en negreta i fosc; metadades petites, atenuades i en majúscules                             |
+| Targetes blanques sobre fons blanc sense profunditat                              | Fons de pàgina `bg-slate-100` i superfícies blanques amb vora + ombra                             |
+| Alertes i metadades sense tractament propi                                        | Alertes **tonal** i metadades en **chips** de color                                              |
+
+### 3.2 Repetició
+
+| Problema a l'estat inicial                                                       | Solució aplicada                                                                                   |
+| -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Cada targeta es munta d'una manera i sense patró                                | Totes les targetes comparteixen la mateixa anatomia: pòster → títol → metadades → CTA              |
+| Estils de superfície incoherents                                                 | Mateix radi `rounded-xl`, vora suau, ombra i escala d'espaiat a targetes, panell de cerca i diàleg |
+| Metadades com a text pla, sense coherència amb la resta                          | Mateixa família de **chips** a la graella i al diàleg                                               |
+| Imatges trencades quan l'API retorna `"N/A"`                                     | Pòster de reserva compartit (`src/utils/poster.ts` + `src/assets/poster-placeholder.svg`)           |
+| Estats de càrrega diferents                                                     | Mateix `v-progress-circular` (mida, gruix i color) a la llista i al diàleg                          |
+
+### 3.3 Alineació
+
+| Problema a l'estat inicial                                                                            | Solució aplicada                                                                                     |
+| ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `v-container` imbricat a `MovieList.vue`: doble *padding* i contingut desalineat                       | Eliminat el contenidor intern; tot comparteix una única graella                                       |
+| Contingut sense un eix comú                                                                           | Columna única centrada (`mx-auto max-w-6xl`) per a capçalera, cerca i resultats                       |
+| Botons que no s'alineen entre targetes quan el títol té llargada diferent                             | CTA fixat a la vora inferior de cada targeta                                                          |
+| No s'indica quants resultats hi ha, sense relació amb la graella                                      | Encapçalament «Resultats (n)» alineat amb la graella                                                  |
+| Text perdut al diàleg («trar la informació detallada dins d'un v-dialog.») que trencava la composició | Eliminat aquest text d'escombraries                                                                   |
+
+### 3.4 Proximitat
+
+| Problema a l'estat inicial                                                     | Solució aplicada                                                                              |
+| ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| Camp de cerca orfe, sense identificar-se com un bloc                           | Cerca + botó agrupats dins d'un panell elevat (`v-sheet`) que els separa dels resultats        |
+| Capçalera, cerca i resultats amb espaiat arbitrari                             | Títol i descripció units; més espai abans del panell de cerca                                   |
+| Contingut de la targeta amb espaiat desordenat                                 | Espaiat intern estret (pòster→títol→metadades) i separació àmplia *entre* targetes             |
+| Diàleg amb títol, dades i sinopsi barrejats                                    | Bloc títol + chips, després la sinopsi, i tancament amb divisor i acció d'amplada completa     |
+
+### 3.5 Altres correccions incloses
+
+- **`vite.config.mts` restablert.** El projecte no tenia cap configuració de Vite, de
+  manera que el plugin de Vue no es registrava i l'aplicació ni compilava ni s'executava
+  (error `[PARSE_ERROR]` a tots els fitxers `.vue`).
+- **El diàleg es tanca amb `Esc` o clic al fons** (`@update:model-value` emet
+  `movieClose`), mantenint sincronitzat l'estat del component pare.
+- **Títol del document** d'`index.html` canviat de *«Welcome to Vuetify 4»* a
+  *«Movie Searcher»*.
+
+---
+
+## 4. Captures de la versió millorada
+
+> Mateix procediment: desa les noves captures a `screenshots/`.
+
+Pantalla de cerca amb capçalera, panell de cerca i graella de resultats:
+
+![Versió millorada — pantalla de cerca](screenshots/millora-1.png)
+
+Detall de pel·lícula amb chips, sinopsi i acció destacada:
+
+![Versió millorada — detall de la pel·lícula](screenshots/millora-2.png)
+
+(afegeix tantes captures com calgui, p. ex. l'estat de càrrega o el resultat buit)
+
+![Versió millorada — estat de càrrega](screenshots/millora-3.png)
+
+---
+
+## 5. Fitxers modificats
+
+| Fitxer                                        | Canvi                                                            |
+| --------------------------------------------- | ---------------------------------------------------------------- |
+| `src/App.vue`                                 | Fons de pàgina atenuat (`bg-slate-100`)                          |
+| `src/pages/index.vue`                         | Capçalera de pàgina i columna de contingut                       |
+| `src/components/Searchbar.vue`                | Panell de cerca agrupat + botó principal                         |
+| `src/components/MovieList.vue`                | Encapçalament de resultats, targetes d'alçada igual, estats      |
+| `src/components/MoviePage.vue`                | Layout del diàleg, chips, accions i neteja de text perdut        |
+| `src/utils/poster.ts`, `src/assets/poster-placeholder.svg` | Pòster de reserva compartit                          |
+| `vite.config.mts`                             | Configuració de build restablerta                                |
+| `index.html`                                  | Títol del document                                               |
+
+---
+
+## 6. Resum abans → després
+
+| Àrea          | Abans                                                              | Després                                                                |
+| ------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| Identitat     | Cap: la cerca penja en una pàgina en blanc                         | Títol centrat amb icona i descripció, accent primari al títol          |
+| Cerca         | Camp de text sol                                                    | Camp + botó «Cerca» agrupats en una superfície elevada                 |
+| Resultats     | Targetes amb títol/subtítol iguals i botó gris «More»              | Graella escanejable, títols en negreta, metadades atenuades, CTA primari |
+| Estats        | Alertes genèriques i un sol espiner                                 | Estats coherents amb etiquetes i estil d'espiner repetit               |
+| Diàleg        | Text perdut, layout pla, botó gris «Go back»                       | Pòster + chips de metadades + divisor + botó «Close» primari           |
