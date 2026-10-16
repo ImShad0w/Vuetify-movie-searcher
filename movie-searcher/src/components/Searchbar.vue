@@ -1,6 +1,36 @@
 <template>
-  <v-text-field append-inner-icon="mdi-magnify" density="compact" label="Ex: Cyberpunk..." variant="solo" hide-details
-    single-line v-model="movieSearch" @keydown.enter="search"></v-text-field>
+  <!-- Proximity: the search control is grouped in its own elevated surface, clearly separated from results -->
+  <section class="mb-8">
+    <v-sheet class="rounded-xl pa-4 shadow-md" color="white">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <v-text-field
+          v-model="movieSearch"
+          class="flex-1"
+          clearable
+          density="comfortable"
+          hide-details
+          label="Search for a movie"
+          placeholder="Ex: Cyberpunk..."
+          prepend-inner-icon="mdi-magnify"
+          rounded="lg"
+          single-line
+          variant="outlined"
+          @keydown.enter="search"
+        />
+
+        <v-btn
+          class="shrink-0"
+          color="primary"
+          :loading="isSearching"
+          size="large"
+          variant="flat"
+          @click="search"
+        >
+          Search
+        </v-btn>
+      </div>
+    </v-sheet>
+  </section>
 </template>
 <script setup>
 import { ref } from "vue"
@@ -26,5 +56,4 @@ async function search() {
   isSearching.value = false
   movieSearch.value = ""
 }
-
 </script>
